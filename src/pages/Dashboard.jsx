@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 export default function Dashboard() {
   const { user } = useAuth();
   const [username, setUsername] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (user?.username) setUsername(user.username);
@@ -23,7 +25,10 @@ export default function Dashboard() {
           QuickBill is a modern, simple invoice generator. Create, manage,
           print, and share professional invoices quickly and efficiently.
         </p>
-        <button className="bg-[#28A745] text-white px-6 py-2 rounded-full hover:bg-green-600 transition flex items-center gap-2 self-start">
+        <button
+          onClick={() => navigate("/create-invoice")}
+          className="bg-[#28A745] text-white px-6 py-2 rounded-full hover:bg-green-600 transition flex items-center gap-2 self-start"
+        >
           <span>➕</span> Create Invoice
         </button>
       </div>
