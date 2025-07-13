@@ -1,15 +1,20 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
 
 export default function CreateInvoice() {
   const [customerName, setCustomerName] = useState("");
-  const [gst, setGst] = useState(18);
+  const [gst, setGst] = useState(0);
   const [products, setProducts] = useState([
     { description: "", quantity: 1, price: 0 },
   ]);
   const [success, setSuccess] = useState(false);
   const invoiceRef = useRef();
+
+  useEffect(() => {
+    setCustomerName("");
+    setGst(0);
+    setProducts([{ description: "", quantity: 1, price: 0 }]);
+  }, []);
 
   const handleProductChange = (index, key, value) => {
     const updated = [...products];
@@ -40,40 +45,8 @@ export default function CreateInvoice() {
     e.preventDefault();
     setSuccess(true);
     setTimeout(() => setSuccess(false), 2000);
-    // You can add your API call here if needed
   };
 
-  //   const handleDownloadPDF = async () => {
-  //     const input = invoiceRef.current;
-  //     if (!input) return;
-  //     // Scroll to top to ensure full capture
-  //     window.scrollTo(0, 0);
-  //     // Wait for DOM to render
-  //     await new Promise((resolve) => setTimeout(resolve, 300));
-  //     const canvas = await html2canvas(input, {
-  //       scale: 2,
-  //       useCORS: true,
-  //       backgroundColor: "#fff",
-  //     });
-  //     const imgData = canvas.toDataURL("image/png");
-  //     const pdf = new jsPDF({
-  //       orientation: "portrait",
-  //       unit: "pt",
-  //       format: "a4",
-  //     });
-  //     const pageWidth = pdf.internal.pageSize.getWidth();
-  //     const pageHeight = pdf.internal.pageSize.getHeight();
-  //     const imgProps = pdf.getImageProperties(imgData);
-  //     let pdfWidth = pageWidth - 40;
-  //     let pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-  //     // If invoice is too tall, fit to page
-  //     if (pdfHeight > pageHeight - 40) {
-  //       pdfHeight = pageHeight - 40;
-  //       pdfWidth = (imgProps.width * pdfHeight) / imgProps.height;
-  //     }
-  //     pdf.addImage(imgData, "PNG", 20, 20, pdfWidth, pdfHeight);
-  //     pdf.save(`Invoice_${customerName || "Customer"}.pdf`);
-  //   };
   const handleDownloadPDF = () => {
     const doc = new jsPDF({
       orientation: "portrait",
@@ -81,103 +54,122 @@ export default function CreateInvoice() {
       format: "a4",
     });
 
-    // Add title and store info
-    doc.setFontSize(20);
-    doc.text("Karan General Store", 20, 20);
-    doc.setFontSize(12);
-    doc.text("123, Market Road, Vadodara, Gujarat, India", 20, 30);
-    doc.text("INVOICE", 160, 20);
-    doc.text(`Invoice #: INV-${Date.now()}`, 160, 30);
-    doc.text(`Date: ${new Date().toLocaleDateString()}`, 160, 40);
-    doc.text("Due: On Receipt", 160, 50);
+    doc.setFontSize(16);
+    doc.text("Karan General Store", 20, 20, { color: "#28A745" });
+    doc.setFontSize(10);
+    doc.text("Dhansura, Gujarat, India", 20, 25);
+    doc.text("INVOICE", 150, 20, {
+      align: "right",
+      bold: true,
+      color: "#28A745",
+    });
+    doc.text(`Invoice : INV-0705`, 150, 25, { align: "right", bold: true });
+    doc.text(`Date: ${new Date().toLocaleDateString()}`, 150, 30, {
+      align: "right",
+    });
 
-    // Add Bill To and Ship To
-    doc.text("Bill To:", 20, 60);
-    doc.text(customerName || "Customer Name", 20, 70);
-    doc.text("Ship To:", 100, 60);
-    doc.text(customerName || "Customer Name", 100, 70);
+    // Bill To / Ship To
+    doc.text("Bill To:", 20, 45);
+    doc.text(customerName || "", 20, 50);
+    doc.text("Ship To:", 100, 45);
+    doc.text(customerName || "", 100, 50);
 
-    // Add table header with borders
-    doc.setFillColor(173, 216, 230); // Light blue background
-    doc.rect(20, 80, 170, 10, "F"); // Header background
-    doc.setDrawColor(0, 0, 0); // Black border
-    doc.rect(20, 80, 170, 10); // Header border
+    // Table Header
+    doc.setFillColor(173, 216, 230);
+    doc.rect(20, 60, 170, 10, "F");
+    doc.setDrawColor(0);
+    doc.rect(20, 60, 170, 10);
+    doc.setFontSize(10);
+    doc.text("#", 25, 67);
+    doc.text("Item & Description", 45, 67);
+    doc.text("Qty", 115, 67, { align: "right" });
+    doc.text("Price", 140, 67, { align: "right" });
+    doc.text("Amount", 185, 67, { align: "right" });
 
-    doc.setFontSize(12);
-    doc.text("#", 25, 87);
-    doc.text("Item & Description", 40, 87);
-    doc.text("Qty", 110, 87);
-    doc.text("Price", 130, 87);
-    doc.text("Amount", 150, 87);
+    // Column dividers
+    doc.line(40, 60, 40, 70);
+    doc.line(105, 60, 105, 70);
+    doc.line(125, 60, 125, 70);
+    doc.line(160, 60, 160, 70);
 
-    // Draw table columns
-    doc.line(35, 80, 35, 90); // after #
-    doc.line(105, 80, 105, 90); // after Item
-    doc.line(125, 80, 125, 90); // after Qty
-    doc.line(145, 80, 145, 90); // after Price
-
-    // Add table rows with borders
-    let yPos = 95;
+    // Table Rows
+    let yPos = 75;
     products.forEach((item, idx) => {
-      doc.rect(20, yPos - 7, 170, 10); // Row border
-      doc.line(35, yPos - 7, 35, yPos + 3); // after #
-      doc.line(105, yPos - 7, 105, yPos + 3); // after Item
-      doc.line(125, yPos - 7, 125, yPos + 3); // after Qty
-      doc.line(145, yPos - 7, 145, yPos + 3); // after Price
+      doc.rect(20, yPos - 5, 170, 10);
+      doc.line(40, yPos - 5, 40, yPos + 5);
+      doc.line(105, yPos - 5, 105, yPos + 5);
+      doc.line(125, yPos - 5, 125, yPos + 5);
+      doc.line(160, yPos - 5, 160, yPos + 5);
 
       doc.text(`${idx + 1}`, 25, yPos);
-      doc.text(item.description || "N/A", 40, yPos);
-      doc.text(item.quantity.toString(), 110, yPos);
-      doc.text(`₹ ${item.price.toFixed(2)}`, 130, yPos);
-      doc.text(`₹ ${(item.quantity * item.price).toFixed(2)}`, 150, yPos);
+      doc.text(item.description || "N/A", 45, yPos);
+      doc.text(item.quantity.toString(), 115, yPos, { align: "right" });
+      doc.text(`Rs. ${item.price.toFixed(2)}`, 150, yPos, { align: "right" });
+      doc.text(`Rs. ${(item.quantity * item.price).toFixed(2)}`, 185, yPos, {
+        align: "right",
+      }); // <-- FIXED: Amount now inside box
+
       yPos += 10;
     });
 
-    // Add totals
-    doc.text(`Tax Rate: ${gst}%`, 130, yPos + 10);
-    doc.text(`Total: ₹ ${subtotal.toFixed(2)}`, 130, yPos + 20);
-    doc.text(
-      `GST Amount: ₹ ${((subtotal * gst) / 100).toFixed(2)}`,
-      130,
-      yPos + 30
-    );
-    doc.text(
-      `Balance Due: ₹ ${(subtotal + (subtotal * gst) / 100).toFixed(2)}`,
-      130,
-      yPos + 40
-    );
+    // Totals Section (in table layout)
+    const totalsStartY = yPos + 10;
+    doc.setFontSize(10);
+    doc.rect(125, totalsStartY + 10, 30, 10);
+    doc.rect(155, totalsStartY + 10, 35, 10);
+    doc.text("GST Amount", 140, totalsStartY + 17, { align: "center" });
+    doc.text(`Rs. ${gstAmount.toFixed(2)}`, 185, totalsStartY + 17, {
+      align: "right",
+    });
+    doc.rect(125, totalsStartY, 30, 10);
+    doc.rect(155, totalsStartY, 35, 10);
+    doc.text("Total Amount ", 140, totalsStartY + 7, { align: "center" });
+    doc.text(`Rs. ${subtotal.toFixed(2)}`, 185, totalsStartY + 7, {
+      align: "right",
+    });
 
-    // Add terms
-    doc.text("Terms & Conditions", 20, yPos + 60);
+    const termsY = totalsStartY + 30;
+    doc.setFontSize(10);
+    doc.text("Terms & Conditions", 20, termsY);
     doc.text(
-      "Full payment is due upon receipt. Late payments may be subject to additional fees.",
+      "Please make to payment before Delivery.Goods can be return within 3 days of Shopping with us.",
       20,
-      yPos + 70
+      termsY + 7
     );
-    doc.text("Thanks for shopping with us!", 20, yPos + 80);
+    doc.text("Thanks for shopping with us!", 20, termsY + 20);
 
-    // Download the PDF
-    doc.save(`Invoice_${customerName || "Customer"}.pdf`);
+    // Save PDF
+    doc.save(`Invoice_${customerName || "Invoice"}.pdf`);
+    // Reset form after download
+    setCustomerName("");
+    setGst(0);
+    setProducts([{ description: "", quantity: 1, price: 0 }]);
   };
+
   return (
-    <div className="p-8 min-h-screen bg-gray-100" style={{ marginLeft: 250 }}>
-      <h1 className="text-3xl font-bold text-[#28A745] mb-4">Create Invoice</h1>
+    <div className="p-8 min-h-screen bg-gray-100">
+      <h1 className="text-3xl font-bold text-[#28A745] mb-6 text-center">
+        Create Invoice
+      </h1>
       <form
         onSubmit={handleSubmit}
-        className="bg-white shadow-lg p-6 rounded-md space-y-4 mb-8"
+        className="bg-white shadow-lg p-6 rounded-lg space-y-6 mb-8 max-w-3xl mx-auto"
       >
         <div>
-          <label className="block font-medium mb-1">Bill To</label>
+          <label className="block font-semibold text-gray-700 mb-2">
+            Bill To
+          </label>
           <input
             type="text"
-            className="w-full border p-2 rounded"
+            className="w-full border-gray-300 p-3 rounded-md focus:ring-2 focus:ring-[#28A745] focus:border-transparent"
             value={customerName}
             onChange={(e) => setCustomerName(e.target.value)}
             required
+            placeholder="Enter Customer Name"
           />
         </div>
 
-        <div className="grid grid-cols-4 gap-4 font-bold">
+        <div className="grid grid-cols-4 gap-4 font-semibold text-gray-700 bg-gray-100 p-2 rounded-md">
           <div>Description</div>
           <div>Quantity</div>
           <div>Price</div>
@@ -185,15 +177,16 @@ export default function CreateInvoice() {
         </div>
 
         {products.map((item, idx) => (
-          <div key={idx} className="grid grid-cols-4 gap-4 mb-2">
+          <div key={idx} className="grid grid-cols-4 gap-4">
             <input
               type="text"
               value={item.description}
               onChange={(e) =>
                 handleProductChange(idx, "description", e.target.value)
               }
-              className="border p-2 rounded"
+              className="border-gray-300 p-3 rounded-md focus:ring-2 focus:ring-[#28A745] focus:border-transparent"
               required
+              placeholder="Enter Item"
             />
             <input
               type="number"
@@ -205,7 +198,7 @@ export default function CreateInvoice() {
                   Math.max(1, Number(e.target.value))
                 )
               }
-              className="border p-2 rounded"
+              className="border-gray-300 p-3 rounded-md focus:ring-2 focus:ring-[#28A745] focus:border-transparent"
               min="1"
               required
             />
@@ -216,18 +209,18 @@ export default function CreateInvoice() {
                 handleProductChange(
                   idx,
                   "price",
-                  Math.max(1, Number(e.target.value))
+                  Math.max(0, Number(e.target.value))
                 )
               }
-              className="border p-2 rounded"
-              min="1"
+              className="border-gray-300 p-3 rounded-md focus:ring-2 focus:ring-[#28A745] focus:border-transparent"
+              min="0"
               required
-              placeholder="Price"
+              placeholder="Enter Price"
             />
             <button
               type="button"
               onClick={() => removeProductRow(idx)}
-              className={`bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 ${
+              className={`bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition ${
                 products.length === 1 ? "opacity-50 cursor-not-allowed" : ""
               }`}
               disabled={products.length === 1}
@@ -240,18 +233,22 @@ export default function CreateInvoice() {
         <button
           type="button"
           onClick={addProductRow}
-          className="bg-blue-500 text-white px-3 py-2 rounded hover:bg-blue-600"
+          className="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 transition w-full"
         >
           Add Product
         </button>
 
-        <div className="mt-4">
-          <label className="block font-medium mb-1">GST (%)</label>
+        <div>
+          <label className="block font-semibold text-gray-700 mb-2">
+            GST (%)
+          </label>
           <input
             type="number"
             value={gst}
-            onChange={(e) => setGst(Number(e.target.value))}
-            className="w-full border p-2 rounded"
+            onChange={(e) =>
+              setGst(Math.max(0, Math.min(100, Number(e.target.value))))
+            }
+            className="w-full border-gray-300 p-3 rounded-md focus:ring-2 focus:ring-[#28A745] focus:border-transparent"
             min="0"
             max="100"
             required
@@ -260,12 +257,12 @@ export default function CreateInvoice() {
 
         <button
           type="submit"
-          className="bg-[#28A745] text-white px-6 py-2 rounded hover:bg-green-600"
+          className="bg-[#28A745] text-white px-6 py-2 rounded-md hover:bg-green-600 transition w-full"
         >
           Create Invoice
         </button>
         {success && (
-          <div className="text-green-600 font-semibold mt-2">
+          <div className="text-green-600 font-semibold text-center mt-2">
             Invoice Created Successfully!
           </div>
         )}
@@ -274,112 +271,112 @@ export default function CreateInvoice() {
       {/* Invoice Preview */}
       <div
         ref={invoiceRef}
-        className="bg-white mx-auto rounded-lg shadow-xl p-8 w-full max-w-2xl"
-        style={{ backgroundColor: "#fff" }} // ensure no oklch here
+        className="bg-white mx-auto rounded-lg shadow-xl p-8 w-full max-w-3xl relative"
       >
-        <h2 className="text-xl font-bold" style={{ color: "#28A745" }}>
-          Karan General Store
-        </h2>
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex justify-between items-start mb-6 border-b pb-4">
           <div>
-            <h2 className="text-xl font-bold text-[#28A745]">
+            <h2 className="text-2xl font-bold text-[#28A745]">
               Karan General Store
             </h2>
-            <p className="text-sm text-gray-600">
-              123, Market Road, Vadodara, Gujarat, India
-            </p>
+            <p className="text-sm text-gray-600">Dhansura, Gujarat, India</p>
           </div>
           <div className="text-right">
-            <span className="text-3xl font-bold text-blue-700">INVOICE</span>
-            <div className="text-sm mt-2">
-              <div>
-                <span className="font-semibold">Invoice #:</span> INV-
-                {Date.now()}
-              </div>
-              <div>
-                <span className="font-semibold">Date:</span>{" "}
-                {new Date().toLocaleDateString()}
-              </div>
-              <div>
-                <span className="font-semibold">Due:</span> On Receipt
-              </div>
-            </div>
+            <h2 className="text-3xl font-bold text-blue-700">INVOICE</h2>
+            <p className="text-sm mt-1">
+              <span className="font-semibold">Invoice:</span> INV-0705
+            </p>
+            <p className="text-sm">
+              <span className="font-semibold">Date:</span>{" "}
+              {new Date().toLocaleDateString()}
+            </p>
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-4 mb-4">
+        <div className="grid grid-cols-2 gap-6 mb-6">
           <div>
-            <div className="font-semibold">Bill To:</div>
-            <div>{customerName || "Customer Name"}</div>
+            <div className="font-semibold text-gray-700">Bill To:</div>
+            <div className="mt-1">{customerName || ""}</div>
           </div>
           <div>
-            <div className="font-semibold">Ship To:</div>
-            <div>{customerName || "Customer Name"}</div>
+            <div className="font-semibold text-gray-700">Ship To:</div>
+            <div className="mt-1">{customerName || ""}</div>
           </div>
         </div>
-        <table className="w-full border mb-4">
+        <table className="w-full border-collapse mb-6">
           <thead>
             <tr className="bg-blue-100 text-blue-900">
-              <th className="border px-2 py-1">#</th>
-              <th className="border px-2 py-1">Item & Description</th>
-              <th className="border px-2 py-1">Qty</th>
-              <th className="border px-2 py-1">Price</th>
-              <th className="border px-2 py-1">Amount</th>
+              <th className="border border-gray-300 px-4 py-2 text-left">#</th>
+              <th className="border border-gray-300 px-4 py-2 text-left">
+                Item & Description
+              </th>
+              <th className="border border-gray-300 px-4 py-2 text-right">
+                Qty
+              </th>
+              <th className="border border-gray-300 px-4 py-2 text-right">
+                Price
+              </th>
+              <th className="border border-gray-300 px-4 py-2 text-right">
+                Amount
+              </th>
             </tr>
           </thead>
           <tbody>
             {products.map((item, idx) => (
-              <tr key={idx}>
-                <td className="border px-2 py-1">{idx + 1}</td>
-                <td className="border px-2 py-1">{item.description}</td>
-                <td className="border px-2 py-1">{item.quantity}</td>
-                <td className="border px-2 py-1">₹ {item.price}</td>
-                <td className="border px-2 py-1">
-                  ₹ {item.quantity * item.price}
+              <tr key={idx} className="border-b border-gray-200">
+                <td className="border border-gray-300 px-4 py-2">{idx + 1}</td>
+                <td className="border border-gray-300 px-4 py-2">
+                  {item.description}
+                </td>
+                <td className="border border-gray-300 px-4 py-2 text-right">
+                  {item.quantity}
+                </td>
+                <td className="border border-gray-300 px-4 py-2 text-right">
+                  ₹ {item.price.toFixed(2)}
+                </td>
+                <td className="border border-gray-300 px-4 py-2 text-right">
+                  ₹ {(item.quantity * item.price).toFixed(2)}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
         <div className="flex justify-end">
-          <table>
+          <table className="text-right">
             <tbody>
               <tr>
-                <td className="pr-4 font-semibold">Tax Rate:</td>
-                <td>{gst}%</td>
-              </tr>
-              <tr>
-                <td className="pr-4 font-semibold">Total:</td>
-                <td>₹ {subtotal.toFixed(2)}</td>
-              </tr>
-              <tr>
-                <td className="pr-4 font-semibold">GST Amount:</td>
+                <td className="pr-6 font-semibold text-gray-700">
+                  GST Amount:
+                </td>
                 <td>₹ {gstAmount.toFixed(2)}</td>
               </tr>
               <tr>
-                <td className="pr-4 font-semibold">Balance Due:</td>
-                <td className="text-blue-700 font-bold text-lg">
-                  ₹ {totalAmount.toFixed(2)}
-                </td>
+                <td className="pr-6 font-semibold text-gray-700">Total:</td>
+                <td>₹ {subtotal.toFixed(2)}</td>
               </tr>
             </tbody>
           </table>
         </div>
-        <div className="mt-6 text-sm text-gray-600">
+        <div className="mt-6 text-sm text-gray-600 border-t pt-4">
           <div className="font-semibold">Terms & Conditions</div>
-          <div>
-            Full payment is due upon receipt. Late payments may be subject to
-            additional fees.
+          <div className="mt-2">Please make to payment before Delivery.</div>
+          <div className="mt-2">
+            Goods can be return within 3 days of Shopping with us.
           </div>
         </div>
         <div className="mt-4 text-center text-gray-700">
           Thanks for shopping with us!
+        </div>
+        {/* Watermark effect */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-10 pointer-events-none">
+          <h2 className="text-6xl font-bold text-gray-300 rotate-45">
+            Karan General Store
+          </h2>
         </div>
       </div>
       <div className="flex justify-end mt-4">
         <button
           type="button"
           onClick={handleDownloadPDF}
-          className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-800"
+          className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition"
         >
           Save as PDF
         </button>
