@@ -55,15 +55,13 @@ export default function CreateInvoice() {
     });
 
     doc.setFontSize(16);
-    doc.text("Karan General Store", 20, 20, { color: "#28A745" });
+    doc.text("Karan General Store", 20, 20);
     doc.setFontSize(10);
     doc.text("Dhansura, Gujarat, India", 20, 25);
     doc.text("INVOICE", 150, 20, {
       align: "right",
-      bold: true,
-      color: "#28A745",
     });
-    doc.text(`Invoice : INV-0705`, 150, 25, { align: "right", bold: true });
+    doc.text(`Invoice : INV-0705`, 150, 25, { align: "right" });
     doc.text(`Date: ${new Date().toLocaleDateString()}`, 150, 30, {
       align: "right",
     });
@@ -107,32 +105,45 @@ export default function CreateInvoice() {
       doc.text(`Rs. ${item.price.toFixed(2)}`, 150, yPos, { align: "right" });
       doc.text(`Rs. ${(item.quantity * item.price).toFixed(2)}`, 185, yPos, {
         align: "right",
-      }); // <-- FIXED: Amount now inside box
+      });
 
       yPos += 10;
     });
 
-    // Totals Section (in table layout)
+    // Totals Section (NEW ORDER: GST → Amount → Total)
     const totalsStartY = yPos + 10;
     doc.setFontSize(10);
-    doc.rect(125, totalsStartY + 10, 30, 10);
-    doc.rect(155, totalsStartY + 10, 35, 10);
-    doc.text("GST Amount", 140, totalsStartY + 17, { align: "center" });
-    doc.text(`Rs. ${gstAmount.toFixed(2)}`, 185, totalsStartY + 17, {
-      align: "right",
-    });
+
+    // GST Amount
     doc.rect(125, totalsStartY, 30, 10);
     doc.rect(155, totalsStartY, 35, 10);
-    doc.text("Total Amount ", 140, totalsStartY + 7, { align: "center" });
-    doc.text(`Rs. ${subtotal.toFixed(2)}`, 185, totalsStartY + 7, {
+    doc.text("GST Amount", 140, totalsStartY + 7, { align: "center" });
+    doc.text(`Rs. ${gstAmount.toFixed(2)}`, 185, totalsStartY + 7, {
       align: "right",
     });
 
-    const termsY = totalsStartY + 30;
+    // Subtotal (Amount)
+    doc.rect(125, totalsStartY + 10, 30, 10);
+    doc.rect(155, totalsStartY + 10, 35, 10);
+    doc.text("Amount", 140, totalsStartY + 17, { align: "center" });
+    doc.text(`Rs. ${subtotal.toFixed(2)}`, 185, totalsStartY + 17, {
+      align: "right",
+    });
+
+    // Total Amount
+    doc.rect(125, totalsStartY + 20, 30, 10);
+    doc.rect(155, totalsStartY + 20, 35, 10);
+    doc.text("Total Amount", 140, totalsStartY + 27, { align: "center" });
+    doc.text(`Rs. ${totalAmount.toFixed(2)}`, 185, totalsStartY + 27, {
+      align: "right",
+    });
+
+    // Terms
+    const termsY = totalsStartY + 40;
     doc.setFontSize(10);
     doc.text("Terms & Conditions", 20, termsY);
     doc.text(
-      "Please make to payment before Delivery.Goods can be return within 3 days of Shopping with us.",
+      "Please make to payment before Delivery. Goods can be return within 3 days of Shopping with us.",
       20,
       termsY + 7
     );
@@ -140,11 +151,111 @@ export default function CreateInvoice() {
 
     // Save PDF
     doc.save(`Invoice_${customerName || "Invoice"}.pdf`);
+
     // Reset form after download
     setCustomerName("");
     setGst(0);
     setProducts([{ description: "", quantity: 1, price: 0 }]);
   };
+
+  // const handleDownloadPDF = () => {
+  //   const doc = new jsPDF({
+  //     orientation: "portrait",
+  //     unit: "mm",
+  //     format: "a4",
+  //   });
+
+  //   doc.setFontSize(16);
+  //   doc.text("Karan General Store", 20, 20, { color: "#28A745" });
+  //   doc.setFontSize(10);
+  //   doc.text("Dhansura, Gujarat, India", 20, 25);
+  //   doc.text("INVOICE", 150, 20, {
+  //     align: "right",
+  //     bold: true,
+  //     color: "#28A745",
+  //   });
+  //   doc.text(`Invoice : INV-0705`, 150, 25, { align: "right", bold: true });
+  //   doc.text(`Date: ${new Date().toLocaleDateString()}`, 150, 30, {
+  //     align: "right",
+  //   });
+
+  //   // Bill To / Ship To
+  //   doc.text("Bill To:", 20, 45);
+  //   doc.text(customerName || "", 20, 50);
+  //   doc.text("Ship To:", 100, 45);
+  //   doc.text(customerName || "", 100, 50);
+
+  //   // Table Header
+  //   doc.setFillColor(173, 216, 230);
+  //   doc.rect(20, 60, 170, 10, "F");
+  //   doc.setDrawColor(0);
+  //   doc.rect(20, 60, 170, 10);
+  //   doc.setFontSize(10);
+  //   doc.text("#", 25, 67);
+  //   doc.text("Item & Description", 45, 67);
+  //   doc.text("Qty", 115, 67, { align: "right" });
+  //   doc.text("Price", 140, 67, { align: "right" });
+  //   doc.text("Amount", 185, 67, { align: "right" });
+
+  //   // Column dividers
+  //   doc.line(40, 60, 40, 70);
+  //   doc.line(105, 60, 105, 70);
+  //   doc.line(125, 60, 125, 70);
+  //   doc.line(160, 60, 160, 70);
+
+  //   // Table Rows
+  //   let yPos = 75;
+  //   products.forEach((item, idx) => {
+  //     doc.rect(20, yPos - 5, 170, 10);
+  //     doc.line(40, yPos - 5, 40, yPos + 5);
+  //     doc.line(105, yPos - 5, 105, yPos + 5);
+  //     doc.line(125, yPos - 5, 125, yPos + 5);
+  //     doc.line(160, yPos - 5, 160, yPos + 5);
+
+  //     doc.text(`${idx + 1}`, 25, yPos);
+  //     doc.text(item.description || "N/A", 45, yPos);
+  //     doc.text(item.quantity.toString(), 115, yPos, { align: "right" });
+  //     doc.text(`Rs. ${item.price.toFixed(2)}`, 150, yPos, { align: "right" });
+  //     doc.text(`Rs. ${(item.quantity * item.price).toFixed(2)}`, 185, yPos, {
+  //       align: "right",
+  //     }); // <-- FIXED: Amount now inside box
+
+  //     yPos += 10;
+  //   });
+
+  //   // Totals Section (in table layout)
+  //   const totalsStartY = yPos + 10;
+  //   doc.setFontSize(10);
+  //   doc.rect(125, totalsStartY + 10, 30, 10);
+  //   doc.rect(155, totalsStartY + 10, 35, 10);
+  //   doc.text("GST Amount", 140, totalsStartY + 17, { align: "center" });
+  //   doc.text(`Rs. ${gstAmount.toFixed(2)}`, 185, totalsStartY + 17, {
+  //     align: "right",
+  //   });
+  //   doc.rect(125, totalsStartY, 30, 10);
+  //   doc.rect(155, totalsStartY, 35, 10);
+  //   doc.text("Total Amount ", 140, totalsStartY + 7, { align: "center" });
+  //   doc.text(`Rs. ${subtotal.toFixed(2)}`, 185, totalsStartY + 7, {
+  //     align: "right",
+  //   });
+
+  //   const termsY = totalsStartY + 30;
+  //   doc.setFontSize(10);
+  //   doc.text("Terms & Conditions", 20, termsY);
+  //   doc.text(
+  //     "Please make to payment before Delivery.Goods can be return within 3 days of Shopping with us.",
+  //     20,
+  //     termsY + 7
+  //   );
+  //   doc.text("Thanks for shopping with us!", 20, termsY + 20);
+
+  //   // Save PDF
+  //   doc.save(`Invoice_${customerName || "Invoice"}.pdf`);
+  //   // Reset form after download
+  //   setCustomerName("");
+  //   setGst(0);
+  //   setProducts([{ description: "", quantity: 1, price: 0 }]);
+  // };
 
   return (
     <div className="p-8 min-h-screen bg-gray-100">
@@ -339,6 +450,7 @@ export default function CreateInvoice() {
             ))}
           </tbody>
         </table>
+
         <div className="flex justify-end">
           <table className="text-right">
             <tbody>
@@ -349,12 +461,41 @@ export default function CreateInvoice() {
                 <td>₹ {gstAmount.toFixed(2)}</td>
               </tr>
               <tr>
-                <td className="pr-6 font-semibold text-gray-700">Total:</td>
+                <td className="pr-6 font-semibold text-gray-700">Amount:</td>
                 <td>₹ {subtotal.toFixed(2)}</td>
+              </tr>
+              <tr>
+                <td className="pr-6 font-semibold text-gray-700">
+                  Total Amount:
+                </td>
+                <td>₹ {(subtotal + gstAmount).toFixed(2)}</td>
               </tr>
             </tbody>
           </table>
         </div>
+
+        {/* <div className="flex justify-end">
+          <table className="text-right">
+            <tbody>
+              <tr>
+                <td className="pr-6 font-semibold text-gray-700">
+                  GST Amount:
+                </td>
+                <td>₹ {gstAmount.toFixed(2)}</td>
+              </tr>
+              <tr>
+                <td className="pr-6 font-semibold text-gray-700">Amount:</td>
+                <td>₹ {subtotal.toFixed(2)}</td>
+              </tr>
+              <tr>
+                <td className="pr-6 font-semibold text-gray-700">
+                  Total Amount:
+                </td>
+                <td>₹ {gst + subtotal.toFixed(2)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div> */}
         <div className="mt-6 text-sm text-gray-600 border-t pt-4">
           <div className="font-semibold">Terms & Conditions</div>
           <div className="mt-2">Please make to payment before Delivery.</div>

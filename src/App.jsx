@@ -6,6 +6,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import CreateInvoice from "./pages/CreateInvoice";
+import MyInvoices from "./pages/MyInvoices";
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="*" element={<Register />} />
           <Route path="/create-invoice" element={<CreateInvoice />} />
+          <Route path="/invoices" element={<MyInvoices />} />
         </Routes>
       </Router>
     </AuthProvider>
