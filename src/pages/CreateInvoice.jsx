@@ -41,10 +41,29 @@ export default function CreateInvoice() {
   const gstAmount = (subtotal * gst) / 100;
   const totalAmount = subtotal + gstAmount;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setSuccess(true);
     setTimeout(() => setSuccess(false), 2000);
+
+    // Save invoice to backend
+    try {
+      await fetch("http://localhost:5000/api/invoices/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          invoiceNumber: "INV-" + Date.now(),
+          date: new Date(),
+          customerName,
+          products,
+          gstPercentage: gst,
+          totalAmount: subtotal + gstAmount,
+        }),
+      });
+      // Optionally, show a success message here
+    } catch (err) {
+      alert("Error saving invoice!");
+    }
   };
 
   const handleDownloadPDF = () => {

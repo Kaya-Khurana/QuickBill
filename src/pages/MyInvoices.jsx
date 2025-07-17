@@ -4,6 +4,8 @@ import moment from "moment";
 
 export default function MyInvoices() {
   const [invoices, setInvoices] = useState([]);
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     axios
@@ -47,7 +49,13 @@ export default function MyInvoices() {
                   </td>
                   <td className="p-3">₹ {inv.totalAmount}</td>
                   <td className="p-3">
-                    <button className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 mr-2">
+                    <button
+                      className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 mr-2"
+                      onClick={() => {
+                        setSelectedInvoice(inv);
+                        setShowModal(true);
+                      }}
+                    >
                       View
                     </button>
                     {/* Future: Add Edit/Delete */}
@@ -58,6 +66,60 @@ export default function MyInvoices() {
           </tbody>
         </table>
       </div>
+
+      {showModal && selectedInvoice && (
+        <div
+          className="fixed inset-0 flex items-center justify-center z-50"
+          style={{
+            background: "rgba(255,255,255,0.7)",
+            backdropFilter: "blur(2px)",
+          }}
+        >
+          <div className="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full relative border border-gray-200">
+            <button
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-2xl"
+              onClick={() => setShowModal(false)}
+              aria-label="Close"
+            >
+              ✕
+            </button>
+            <h2 className="text-xl font-bold text-[#28A745] mb-2 text-center">
+              {selectedInvoice.invoiceNumber}
+            </h2>
+            <button
+              className="mb-4 px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition block mx-auto"
+              onClick={() => setShowModal(false)}
+            >
+              ← Back
+            </button>
+            <div className="space-y-2 text-gray-700">
+              <p>
+                <span className="font-semibold">Customer:</span>{" "}
+                {selectedInvoice.customerName}
+              </p>
+              <p>
+                <span className="font-semibold">Date:</span>{" "}
+                {moment(selectedInvoice.date).format("DD MMM YYYY")}
+              </p>
+              <p>
+                <span className="font-semibold">Total:</span> ₹{" "}
+                {selectedInvoice.totalAmount}
+              </p>
+              <div className="mt-4">
+                <span className="font-semibold">Products:</span>
+                <ul className="list-disc ml-6 mt-1">
+                  {selectedInvoice.products?.map((prod, idx) => (
+                    <li key={idx}>
+                      {prod.description} | Qty: {prod.quantity} | Price: ₹{" "}
+                      {prod.price}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
