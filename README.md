@@ -38,6 +38,16 @@ QuickBill is a modern, user-friendly invoice generator designed for small busine
 
 ---
 
+## 🛠️ Screenshots
+
+![alt text](<Screenshot 2025-07-19 170242.png>)
+
+![alt text](<Screenshot 2025-07-19 165430.png>)
+
+![alt text](<Screenshot 2025-07-19 170742.png>)
+
+![alt text](<Screenshot 2025-07-19 171209.png>)
+
 ## 📦 Getting Started
 
 1. **Clone the repository**
