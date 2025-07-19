@@ -14,10 +14,14 @@ router.post("/create", async (req, res) => {
   }
 });
 
-// Get all invoices
+// Get all invoices for a specific user
 router.get("/", async (req, res) => {
   try {
-    const invoices = await Invoice.find().sort({ date: -1 });
+    const userId = req.query.userId;
+    if (!userId) return res.status(400).json({ error: "User ID required" });
+    const invoices = await Invoice.find({ createdBy: userId }).sort({
+      date: -1,
+    });
     res.status(200).json(invoices);
   } catch (err) {
     res.status(500).json({ error: "Error fetching invoices" });

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import jsPDF from "jspdf";
+import { useAuth } from "../context/AuthContext";
 
 export default function CreateInvoice() {
   const [customerName, setCustomerName] = useState("");
@@ -9,6 +10,7 @@ export default function CreateInvoice() {
   ]);
   const [success, setSuccess] = useState(false);
   const invoiceRef = useRef();
+  const { user } = useAuth();
 
   useEffect(() => {
     setCustomerName("");
@@ -58,6 +60,7 @@ export default function CreateInvoice() {
           products,
           gstPercentage: gst,
           totalAmount: subtotal + gstAmount,
+          createdBy: user?.id, // <-- Add this line
         }),
       });
       // Optionally, show a success message here
@@ -176,105 +179,6 @@ export default function CreateInvoice() {
     setGst(0);
     setProducts([{ description: "", quantity: 1, price: 0 }]);
   };
-
-  // const handleDownloadPDF = () => {
-  //   const doc = new jsPDF({
-  //     orientation: "portrait",
-  //     unit: "mm",
-  //     format: "a4",
-  //   });
-
-  //   doc.setFontSize(16);
-  //   doc.text("Karan General Store", 20, 20, { color: "#28A745" });
-  //   doc.setFontSize(10);
-  //   doc.text("Dhansura, Gujarat, India", 20, 25);
-  //   doc.text("INVOICE", 150, 20, {
-  //     align: "right",
-  //     bold: true,
-  //     color: "#28A745",
-  //   });
-  //   doc.text(`Invoice : INV-0705`, 150, 25, { align: "right", bold: true });
-  //   doc.text(`Date: ${new Date().toLocaleDateString()}`, 150, 30, {
-  //     align: "right",
-  //   });
-
-  //   // Bill To / Ship To
-  //   doc.text("Bill To:", 20, 45);
-  //   doc.text(customerName || "", 20, 50);
-  //   doc.text("Ship To:", 100, 45);
-  //   doc.text(customerName || "", 100, 50);
-
-  //   // Table Header
-  //   doc.setFillColor(173, 216, 230);
-  //   doc.rect(20, 60, 170, 10, "F");
-  //   doc.setDrawColor(0);
-  //   doc.rect(20, 60, 170, 10);
-  //   doc.setFontSize(10);
-  //   doc.text("#", 25, 67);
-  //   doc.text("Item & Description", 45, 67);
-  //   doc.text("Qty", 115, 67, { align: "right" });
-  //   doc.text("Price", 140, 67, { align: "right" });
-  //   doc.text("Amount", 185, 67, { align: "right" });
-
-  //   // Column dividers
-  //   doc.line(40, 60, 40, 70);
-  //   doc.line(105, 60, 105, 70);
-  //   doc.line(125, 60, 125, 70);
-  //   doc.line(160, 60, 160, 70);
-
-  //   // Table Rows
-  //   let yPos = 75;
-  //   products.forEach((item, idx) => {
-  //     doc.rect(20, yPos - 5, 170, 10);
-  //     doc.line(40, yPos - 5, 40, yPos + 5);
-  //     doc.line(105, yPos - 5, 105, yPos + 5);
-  //     doc.line(125, yPos - 5, 125, yPos + 5);
-  //     doc.line(160, yPos - 5, 160, yPos + 5);
-
-  //     doc.text(`${idx + 1}`, 25, yPos);
-  //     doc.text(item.description || "N/A", 45, yPos);
-  //     doc.text(item.quantity.toString(), 115, yPos, { align: "right" });
-  //     doc.text(`Rs. ${item.price.toFixed(2)}`, 150, yPos, { align: "right" });
-  //     doc.text(`Rs. ${(item.quantity * item.price).toFixed(2)}`, 185, yPos, {
-  //       align: "right",
-  //     }); // <-- FIXED: Amount now inside box
-
-  //     yPos += 10;
-  //   });
-
-  //   // Totals Section (in table layout)
-  //   const totalsStartY = yPos + 10;
-  //   doc.setFontSize(10);
-  //   doc.rect(125, totalsStartY + 10, 30, 10);
-  //   doc.rect(155, totalsStartY + 10, 35, 10);
-  //   doc.text("GST Amount", 140, totalsStartY + 17, { align: "center" });
-  //   doc.text(`Rs. ${gstAmount.toFixed(2)}`, 185, totalsStartY + 17, {
-  //     align: "right",
-  //   });
-  //   doc.rect(125, totalsStartY, 30, 10);
-  //   doc.rect(155, totalsStartY, 35, 10);
-  //   doc.text("Total Amount ", 140, totalsStartY + 7, { align: "center" });
-  //   doc.text(`Rs. ${subtotal.toFixed(2)}`, 185, totalsStartY + 7, {
-  //     align: "right",
-  //   });
-
-  //   const termsY = totalsStartY + 30;
-  //   doc.setFontSize(10);
-  //   doc.text("Terms & Conditions", 20, termsY);
-  //   doc.text(
-  //     "Please make to payment before Delivery.Goods can be return within 3 days of Shopping with us.",
-  //     20,
-  //     termsY + 7
-  //   );
-  //   doc.text("Thanks for shopping with us!", 20, termsY + 20);
-
-  //   // Save PDF
-  //   doc.save(`Invoice_${customerName || "Invoice"}.pdf`);
-  //   // Reset form after download
-  //   setCustomerName("");
-  //   setGst(0);
-  //   setProducts([{ description: "", quantity: 1, price: 0 }]);
-  // };
 
   return (
     <div className="p-8 min-h-screen bg-gray-100">

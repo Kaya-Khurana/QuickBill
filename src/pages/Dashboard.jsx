@@ -1,14 +1,24 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 export default function Dashboard() {
   const { user } = useAuth();
   const [username, setUsername] = useState("");
+  const [invoices, setInvoices] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
     if (user?.username) setUsername(user.username);
+  }, [user]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    axios
+      .get(`http://localhost:5000/api/invoices?userId=${user.id}`)
+      .then((res) => setInvoices(res.data))
+      .catch((err) => console.error("Error loading invoices:", err));
   }, [user]);
 
   return (
@@ -41,7 +51,8 @@ export default function Dashboard() {
             <span>📄</span> Total Invoices
           </h3>
           <p className="text-gray-600 mb-4">
-            You’ve created <span className="font-bold text-[#28A745]">12</span>{" "}
+            You’ve created{" "}
+            <span className="font-bold text-[#28A745]">{invoices.length}</span>{" "}
             invoices this month.
           </p>
           <button className="bg-[#28A745] text-white px-4 py-2 rounded-full hover:bg-green-600 transition self-start">
@@ -55,7 +66,12 @@ export default function Dashboard() {
             <span>💰</span> Total Revenue
           </h3>
           <p className="text-gray-600 mb-4">
-            <span className="font-bold text-[#28A745]">₹ 24,500.00</span>{" "}
+            <span className="font-bold text-[#28A745]">
+              ₹{" "}
+              {invoices
+                .reduce((sum, inv) => sum + (inv.totalAmount || 0), 0)
+                .toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+            </span>{" "}
             collected in July.
           </p>
           <button className="bg-[#28A745] text-white px-4 py-2 rounded-full hover:bg-green-600 transition self-start">

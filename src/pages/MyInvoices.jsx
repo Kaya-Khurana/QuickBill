@@ -1,18 +1,21 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import moment from "moment";
+import { useAuth } from "../context/AuthContext";
 
 export default function MyInvoices() {
   const [invoices, setInvoices] = useState([]);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
+    if (!user?.id) return;
     axios
-      .get("http://localhost:5000/api/invoices")
+      .get(`http://localhost:5000/api/invoices?userId=${user.id}`)
       .then((res) => setInvoices(res.data))
       .catch((err) => console.error("Error loading invoices:", err));
-  }, []);
+  }, [user]);
 
   return (
     <div className="p-8 ml-[250px]">
