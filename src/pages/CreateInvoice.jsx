@@ -77,9 +77,9 @@ export default function CreateInvoice() {
     });
 
     doc.setFontSize(16);
-    doc.text("Karan General Store", 20, 20);
+    doc.text("General Store", 20, 20);
     doc.setFontSize(10);
-    doc.text("Dhansura, Gujarat, India", 20, 25);
+    doc.text("Gujarat, India", 20, 25);
     doc.text("INVOICE", 150, 20, {
       align: "right",
     });
@@ -309,10 +309,8 @@ export default function CreateInvoice() {
       >
         <div className="flex justify-between items-start mb-6 border-b pb-4">
           <div>
-            <h2 className="text-2xl font-bold text-[#28A745]">
-              Karan General Store
-            </h2>
-            <p className="text-sm text-gray-600">Dhansura, Gujarat, India</p>
+            <h2 className="text-2xl font-bold text-[#28A745]">General Store</h2>
+            <p className="text-sm text-gray-600">Gujarat, India</p>
           </div>
           <div className="text-right">
             <h2 className="text-3xl font-bold text-blue-700">INVOICE</h2>
@@ -432,7 +430,7 @@ export default function CreateInvoice() {
         {/* Watermark effect */}
         <div className="absolute inset-0 flex items-center justify-center opacity-10 pointer-events-none">
           <h2 className="text-6xl font-bold text-gray-300 rotate-45">
-            Karan General Store
+            General Store
           </h2>
         </div>
       </div>
